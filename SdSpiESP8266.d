@@ -1,0 +1,1 @@
+SdSpiESP8266.o: SdSpiESP8266.cpp
