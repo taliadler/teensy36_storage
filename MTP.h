@@ -895,13 +895,6 @@ public:
       usb_free(receive_buffer);
     }
   }
-  
-  void loop2() {
-	  usb_packet_t* receive_buffer2;
-	  Serial.println ("This is loop2");
-	   //TRANSMIT(GetStorageInfo(CONTAINER->params[0]));
-	  return;
-	}
 };
 
 #endif

@@ -341,6 +341,7 @@ void mgtnsy2_led_proc(void)
 
 //usb_packet_t_2 *receive_buffer;  
 
+Metro enter_timer_s = Metro(0);	
 Metro enter_timer = Metro(3000);	
 // the setup() method runs once, when the sketch starts
 
@@ -366,9 +367,11 @@ char exit_str [] = "exit";
 
 void log_screen(void);
 
-void serialFlush();
+bool stor =false;
 
-bool sto =false;
+
+
+
 
 // the loop() methor runs over and over again,
 // as long as the board has power
@@ -381,7 +384,7 @@ void serialFlush(){
 }   
 
 void loop() {	
-		mtpd.loop(sto);
+		mtpd.loop(stor);
 		can_read_proc();
 		analog_read_proc();
 		mgtnsy2_uart1_read_proc();
@@ -429,7 +432,6 @@ int check_unstorage(){
 
 
 
-
 void command_line (void){			
 	char ch_cm;					
 	while (enter_command) {		 
@@ -452,7 +454,7 @@ void command_line (void){
 				Serial.println();
 				Serial.println("-- STORAGE OPEN --");	
 				Serial.println();
-				sto = true;
+				stor = true;
 				enter_command = false;
 			}
 			else if (check_unstorage() == 1) {
@@ -460,7 +462,7 @@ void command_line (void){
 				Serial.println();
 				Serial.println("-- STORAGE CLOSE--");	
 				Serial.println();
-				sto = false;
+				stor = false;
 				enter_command = false;
 			}
 			else if (check_reboot() == 1) {
@@ -484,7 +486,7 @@ void serialEvent() {
       		ch = Serial.read();
 		if (index < MaxChars) receivedChars[index++] = ch; 
 		else receivedChars[index] = 0;
-	    	if ((num >= 1) && (ch == 13)) count_e++;
+	    	if ((num >= 2) && (ch == 13)) count_e++;
 		if (count_e >= 3) {
 			enter_command = true; 			
 			Serial.println();
@@ -514,8 +516,11 @@ void check_enter (void)
 void log_screen(void) {	
 	Serial.println("-- Log Screen --");	
 	Serial.println();
-	serialFlush();
+	//loop();	
+	//serialFlush();
+	Serial.flush();
 	while (!enter_command) {
+		//Serial.flush();
 		check_enter();	
 		loop();				
 	}		
@@ -526,10 +531,8 @@ void log_screen(void) {
 extern "C" int main(void)
 {
 	int ret = 0;
-	//Serial.println (IWDFUsbTargetDevice::GetNumInterfaces);
     Serial.begin(115200);
     delay(2000);
-    
     mgtnsy2_analog_setup();
 	mgtnsy2_can_setup();
 	mgtnsy2_uart1_setup();
@@ -539,7 +542,8 @@ extern "C" int main(void)
 	}else{
 		led_state = LED_STATE_HEARTBEAT_OK;
 	}
-   log_screen();
+	//Serial.flush();
+	log_screen();
   
 }
 
