@@ -484,9 +484,9 @@ void command_line (void){
 		}
 	} 
 }
-
-char ch2 = 13;
-int number = 3;
+int number2 = 0;
+char ch2 = ' ';
+static int number1 = 18;
 // check if the enter button pressed 3 times in 3 seconds, if it pressed - go to command line...
 void serialEvent() { 		  
 	static int cnt = 0;
@@ -497,12 +497,27 @@ void serialEvent() {
 		if (index < MaxChars) receivedChars[index++] = ch; 
 		else receivedChars[index] = 0;
 	    //if (millis() < 4000) count_e = 0;
-	    if (ch == ch2) count_e++;
+	    if (ch == 13) count_e++;
 	    //if ((num >= 2) && (ch == ch2)) count_e++;
 		//if (count_e >= 15) number = 3;
 			//(count_e > number)) {
 			//cnt++ ;		
-		if (count_e >= number) {
+		/*if (count_e >= number1) {
+			number2 = number1;
+			number1 = 3;
+		}*/
+		//if count_e > number1 number1 =3;
+		//if ((millis() >10000) && (count_e>1) && (cnt=0)) number1 =3;
+		if (count_e >= number1) {
+			number1 = 3;
+			cnt++;
+			if (cnt <= 1) count_e = 0;
+			//return;
+		}
+		
+		//else number1 =3;
+		//if ((count_e>1) && (cnt=0)) number1 =3;
+		if (count_e >= number1) { /*//&& (cnt > 1)) {*/
 			enter_command = true; 			
 			Serial.println();
 			Serial.println("-- Exit to command line --");
