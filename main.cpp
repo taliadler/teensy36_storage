@@ -367,7 +367,7 @@ char exit_str [] = "exit";
 
 void log_screen(void);
 
-bool stor =false;
+bool stor = false;  // bool variable to control mtpd.loop to open and close storage
 
 
 
@@ -376,12 +376,16 @@ bool stor =false;
 // the loop() methor runs over and over again,
 // as long as the board has power
 
-
+// flushing the serial
 void serialFlush(){
 	while (Serial.available() > 0) {
     		del = Serial.read();
   	}
 }   
+
+
+// the loop() methor runs over and over again,
+// as long as the board has power
 
 void loop() {	
 		mtpd.loop(stor);
@@ -396,7 +400,7 @@ void loop() {
 
 
 
-
+// detect exit command
 int check_exit(){
 	if ((com_received [com_index-4] == 'e') && (com_received [com_index-3] == 'x') && (com_received [com_index-2] == 'i') && (com_received [com_index-1] == 't') && (com_count == 4)) {
 		com_received [com_index-4] = com_received [com_index-3] = com_received [com_index-2] = com_received [com_index-1] = ' ';
@@ -408,6 +412,7 @@ int check_exit(){
 
 
 
+// detect reboot command
 int check_reboot(){
 	if ((com_received [com_index-6] == 'r') && (com_received [com_index-5] == 'e') && (com_received [com_index-4] == 'b') && 
 		(com_received [com_index-3] == 'o') && (com_received [com_index-2] == 'o') && (com_received [com_index-1] ==  't') && (com_count == 6))	
@@ -416,6 +421,7 @@ int check_reboot(){
 }
 
 
+//detect storage command
 int check_storage(){
 	if ((com_received [com_index-7] == 's') && (com_received [com_index-6] == 't') && (com_received [com_index-5] == 'o') && 
 		(com_received [com_index-4] == 'r') && (com_received [com_index-3] == 'a') && (com_received [com_index-2] ==  'g') && (com_received [com_index-1] ==  'e') && (com_count == 7))	
@@ -423,6 +429,7 @@ int check_storage(){
 	else return 0;
 }
 
+// detect unstorage command
 int check_unstorage(){
 	if ((com_received [com_index-9] == 'u') && (com_received [com_index-8] == 'n') && (com_received [com_index-7] == 's') && (com_received [com_index-6] == 't') && (com_received [com_index-5] == 'o') && 
 		(com_received [com_index-4] == 'r') && (com_received [com_index-3] == 'a') && (com_received [com_index-2] ==  'g') && (com_received [com_index-1] ==  'e') && (com_count == 9))	
@@ -431,7 +438,7 @@ int check_unstorage(){
 }
 
 
-
+// open a command line
 void command_line (void){			
 	char ch_cm;					
 	while (enter_command) {		 
@@ -465,7 +472,7 @@ void command_line (void){
 				stor = false;
 				enter_command = false;
 			}
-			else if (check_reboot() == 1) {
+			else if (check_reboot() == 1) {	
 				_reboot_Teensyduino_();
 				 serialFlush();
  			}
@@ -478,29 +485,43 @@ void command_line (void){
 	} 
 }
 
-
-void serialEvent() { 
-	static byte index = 0;	  
-	char ch, ch2;	
+char ch2 = 13;
+int number = 3;
+// check if the enter button pressed 3 times in 3 seconds, if it pressed - go to command line...
+void serialEvent() { 		  
+	static int cnt = 0;
+	static byte index = 0;	
+	char ch;	
 	while (Serial.available()) {
       		ch = Serial.read();
 		if (index < MaxChars) receivedChars[index++] = ch; 
 		else receivedChars[index] = 0;
-	    	if ((num >= 2) && (ch == 13)) count_e++;
-		if (count_e >= 3) {
+	    //if (millis() < 4000) count_e = 0;
+	    if (ch == ch2) count_e++;
+	    //if ((num >= 2) && (ch == ch2)) count_e++;
+		//if (count_e >= 15) number = 3;
+			//(count_e > number)) {
+			//cnt++ ;		
+		if (count_e >= number) {
 			enter_command = true; 			
 			Serial.println();
-			Serial.println("-- exit to command line --");
+			Serial.println("-- Exit to command line --");
+			Serial.println();
+			Serial.println ("1- Press 'exit' to back log screen");
+			Serial.println ("2- Press 'storage' to open storage");
+			Serial.println ("3- Press 'unstorage' to close storage");
+			Serial.println ("4- Press 'reboot' to reboot teensy");
 			serialFlush();			
 			Serial.println();
 			Serial.print (">$");
 			com_count = 0;				
 			command_line();	
+			ch2 = 13;
 		}        
 	}  
 }
 
-
+// check every 3 seconds if there was a serial event like pressing enter button
 void check_enter (void)
 {			
 	if (!enter_timer.check()) {
@@ -527,11 +548,12 @@ void log_screen(void) {
 }
 
 
-
+// open the log screen,run the loop function while the enter button wasn't press 3 times in 3 seconds
 extern "C" int main(void)
 {
 	int ret = 0;
     Serial.begin(115200);
+    serialFlush();
     delay(2000);
     mgtnsy2_analog_setup();
 	mgtnsy2_can_setup();
@@ -542,7 +564,7 @@ extern "C" int main(void)
 	}else{
 		led_state = LED_STATE_HEARTBEAT_OK;
 	}
-	//Serial.flush();
+	serialFlush();
 	log_screen();
   
 }
