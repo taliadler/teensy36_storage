@@ -5,6 +5,13 @@
 #include <SPI.h>
 #include <SysCall.h>
 #include <Arduino.h>
+
+
+#define RESTART_ADDR 0xE000ED0C
+#define READ_RESTART() (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
+
+
 //#include <log_screen.h>
 // Try to select the best SD card configuration.
 //#if HAS_SDIO_CLASS
@@ -471,8 +478,8 @@ void command_line (void){
 				enter_command = false;
 			}
 			else if (check_reboot() == 1) {	
-				_reboot_Teensyduino_();
-				 serialFlush();
+				WRITE_RESTART(0x5FA0004); 
+				serialFlush();
  			}
 			else {			
 				Serial.println();
