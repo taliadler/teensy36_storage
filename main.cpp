@@ -341,7 +341,6 @@ void mgtnsy2_led_proc(void)
 
 //usb_packet_t_2 *receive_buffer;  
 
-Metro enter_timer_s = Metro(0);	
 Metro enter_timer = Metro(3000);	
 // the setup() method runs once, when the sketch starts
 
@@ -408,7 +407,6 @@ int check_exit(){
 	}
 	else return 0;
 }
-
 
 
 
@@ -484,54 +482,50 @@ void command_line (void){
 		}
 	} 
 }
-int number2 = 0;
-char ch2 = ' ';
-static int number1 = 18;
+
+int count_check = 0; // count
+
+// check again the enters to prevent mistakes on the connect to picicom
+bool check_again(){
+	char c;
+	int counter = 0;
+	while (Serial.available()) {
+      		c = Serial.read();
+			if (c == 13) counter++;
+	}
+	if (counter > 0){
+		count_check++;
+		return false;
+	}
+	return true; 	
+}
+
+
 // check if the enter button pressed 3 times in 3 seconds, if it pressed - go to command line...
 void serialEvent() { 		  
-	static int cnt = 0;
 	static byte index = 0;	
 	char ch;	
 	while (Serial.available()) {
       		ch = Serial.read();
 		if (index < MaxChars) receivedChars[index++] = ch; 
 		else receivedChars[index] = 0;
-	    //if (millis() < 4000) count_e = 0;
 	    if (ch == 13) count_e++;
-	    //if ((num >= 2) && (ch == ch2)) count_e++;
-		//if (count_e >= 15) number = 3;
-			//(count_e > number)) {
-			//cnt++ ;		
-		/*if (count_e >= number1) {
-			number2 = number1;
-			number1 = 3;
-		}*/
-		//if count_e > number1 number1 =3;
-		//if ((millis() >10000) && (count_e>1) && (cnt=0)) number1 =3;
-		if (count_e >= number1) {
-			number1 = 3;
-			cnt++;
-			if (cnt <= 1) count_e = 0;
-			//return;
-		}
-		
-		//else number1 =3;
-		//if ((count_e>1) && (cnt=0)) number1 =3;
-		if (count_e >= number1) { /*//&& (cnt > 1)) {*/
-			enter_command = true; 			
-			Serial.println();
-			Serial.println("-- Exit to command line --");
-			Serial.println();
-			Serial.println ("1- Press 'exit' to back log screen");
-			Serial.println ("2- Press 'storage' to open storage");
-			Serial.println ("3- Press 'unstorage' to close storage");
-			Serial.println ("4- Press 'reboot' to reboot teensy");
-			serialFlush();			
-			Serial.println();
-			Serial.print (">$");
-			com_count = 0;				
-			command_line();	
-			ch2 = 13;
+		if (count_e >= 3) { 
+			if ((count_check > 1) || (check_again())) {
+				enter_command = true; 			
+				Serial.println();
+				Serial.println("-- Exit to command line --");
+				Serial.println();
+				Serial.println ("1- Press 'exit' to back log screen");
+				Serial.println ("2- Press 'storage' to open storage");
+				Serial.println ("3- Press 'unstorage' to close storage");
+				Serial.println ("4- Press 'reboot' to reboot teensy");
+				serialFlush();			
+				Serial.println();
+				Serial.print (">$");
+				com_count = 0;				
+				command_line();	
+			}
 		}        
 	}  
 }
@@ -539,12 +533,10 @@ void serialEvent() {
 // check every 3 seconds if there was a serial event like pressing enter button
 void check_enter (void)
 {			
-	if (!enter_timer.check()) {
-		return;
-	}
-	else  {	
+	if (!enter_timer.check()) return;
+	else {	
 		count_e = 0;
-		serialEvent();	 					    
+		serialEvent();			 					    
 	}
 }
 
@@ -552,11 +544,8 @@ void check_enter (void)
 void log_screen(void) {	
 	Serial.println("-- Log Screen --");	
 	Serial.println();
-	//loop();	
-	//serialFlush();
 	Serial.flush();
 	while (!enter_command) {
-		//Serial.flush();
 		check_enter();	
 		loop();				
 	}		
