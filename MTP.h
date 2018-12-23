@@ -796,7 +796,7 @@ inline MTPContainer *contains (usb_packet_t *receive_buffer){
   }
 
 public:
-  void loop(bool sto) {
+  void loop(bool stor) {
     usb_packet_t *receive_buffer;
 	 //usb_packet_t* receive_buffer3;
     if ((receive_buffer = usb_rx(MTP_RX_ENDPOINT))) {
@@ -820,7 +820,7 @@ public:
               TRANSMIT(WriteStorageIDs());
               break;
             case 0x1005:  // GetStorageInfo
-              if (sto) TRANSMIT(GetStorageInfo(CONTAINER->params[0]));
+              if (stor) TRANSMIT(GetStorageInfo(CONTAINER->params[0]));
               break;
             case 0x1006:  // GetNumObjects
               if (CONTAINER->params[1]) {
